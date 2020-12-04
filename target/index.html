@@ -46,8 +46,27 @@
             margin-top: 20px;
         }
 
+
         .options-section {
             margin-top: 10px;
+        }
+
+        .options-section__name {
+            width: 80px;
+            margin-right: 5px;
+            text-align: right;
+            padding-top: 3px;
+        }
+
+        .options-section__name, .options-section__control {
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .splitter {
+            margin-top: 20px;
+            background-color: #999;
+            height: 1px;
         }
 
     </style>
@@ -58,10 +77,8 @@
     <div class="sidebar-container">
         <div class="basic-operations">
             <button class="add-shape">Add shape</button>
-            <button class="add-shape-100">Add 100 shapes</button>
             <button class="add-container">Add container</button>
-            <button class="save">Save</button>
-            <button class="clear-storage">Clear storage</button>
+            <button class="clear-storage">Clear</button>
         </div>
         <div class="selected-widgets-options" style="display: none">
             <div class="options-section text">
@@ -100,6 +117,35 @@
                 <div class="options-section__name">Fill</div>
                 <div class="options-section__control"><input type="color"></div>
             </div>
+
+            <!-- it's not easy to implement
+                        <div class="splitter"></div>
+                        <h2>Resizing</h2>
+
+                        <div class="options-section resizing-width">
+                            <div class="options-section__name">Width</div>
+                            <div class="options-section__control">
+                                <select>
+                                    <option value="fixed">Fixed size</option>
+                                    <option value="auto">Auto</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="options-section resizing-height">
+                            <div class="options-section__name">Height</div>
+                            <div class="options-section__control">
+                                <select>
+                                    <option value="fixed">Fixed size</option>
+                                    <option value="block">Auto</option>
+                                </select>
+                            </div>
+                        </div>
+                        -->
+
+            <div class="splitter"></div>
+            <h2>Layout</h2>
+
             <div class="options-section widget-type">
                 <div class="options-section__name">Widget type</div>
                 <div class="options-section__control">

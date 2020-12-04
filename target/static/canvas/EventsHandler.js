@@ -68,7 +68,9 @@ define(["require", "exports", "utils/getIntersectedWidgets", "utils/mathUtils", 
                 movingWidgets.forEach(mw => {
                     doResize(mw.startAbsBounds.height - deltaY, height => {
                         mw.w.height = height;
-                        mw.w.y = mw.startAbsBounds.y + deltaY;
+                        if (!mw.w.isPositionControlledByParent) {
+                            mw.w.y = mw.startAbsBounds.y + deltaY;
+                        }
                     });
                 });
             }
@@ -81,7 +83,9 @@ define(["require", "exports", "utils/getIntersectedWidgets", "utils/mathUtils", 
                 movingWidgets.forEach(mw => {
                     doResize(mw.startAbsBounds.width - deltaX, width => {
                         mw.w.width = width;
-                        mw.w.x = mw.startAbsBounds.x + deltaX;
+                        if (!mw.w.isPositionControlledByParent) {
+                            mw.w.x = mw.startAbsBounds.x + deltaX;
+                        }
                     });
                 });
             }

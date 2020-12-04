@@ -30,11 +30,11 @@ define(["require", "exports", "canvas/CanvasController", "canvas/registerEvents"
     document.querySelector('.add-shape').addEventListener('click', () => {
         canvasController.createShapeWidget({ x: 10, y: 10, color: '#FF0000' });
     });
-    document.querySelector('.add-shape-100').addEventListener('click', () => {
-        for (let i = 0; i < 100; i++) {
-            canvasController.createShapeWidget({ x: 10, y: 10 + i, color: '#FF0000' });
-        }
-    });
+    // document.querySelector('.add-shape-100')!.addEventListener('click', () => {
+    // 	for (let i = 0; i < 100; i++) {
+    // 		canvasController.createShapeWidget({x: 10, y: 10 + i, color: '#FF0000'})
+    // 	}
+    // })
     document.querySelector('.add-container').addEventListener('click', () => {
         canvasController.createShapeWidget({ x: 100, y: 100, width: 300, height: 200, color: '#00FF00', container: true });
     });

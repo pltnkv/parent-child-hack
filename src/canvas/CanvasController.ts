@@ -8,8 +8,6 @@ import {MovingWidgets} from 'canvas/EventsHandler'
 import getRootWidgets from 'utils/getRootElements'
 import SidebarController from 'SidebarController'
 
-let idCounter = 0
-
 export default class CanvasController {
 
 	sidebar: SidebarController
@@ -40,7 +38,6 @@ export default class CanvasController {
 		const widget = new ShapeWidget( //todo not only ShapeWidget
 			this,
 			{
-				id: ++idCounter,
 				type: 'shape',
 				x: 0,
 				y: 0,
@@ -76,7 +73,6 @@ export default class CanvasController {
 		const widget = new ShapeWidget(
 			this,
 			{
-				id: ++idCounter,
 				type: 'shape',
 				x: data.x || 0,
 				y: data.y || 0,
@@ -171,7 +167,7 @@ export default class CanvasController {
 		const targetWidgetElement = elements.find(elementUnderPoint => {
 			if (elementUnderPoint.getAttribute('data-id')) {
 				widgetElement = this.getWidgetByElement(elementUnderPoint)
-				return widgetElement
+				return !!widgetElement
 					&& widgetElement.isContainer
 					&& widgetElement.isDADEnabled
 					&& !movingWidgets.some(mw => widgetElement === mw.w)

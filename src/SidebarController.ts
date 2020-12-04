@@ -141,7 +141,7 @@ const styles: {[index: string]: ElementProxy} = {
 	},
 	[StyleName.AlignItems]: {
 		get: (widget: BaseWidget) => {
-			return widget.element.style.alignItems || 'flex-start'
+			return widget.element.style.alignItems || 'stretch'
 		},
 		set: (widget: BaseWidget, value: any) => {
 			widget.element.style.alignItems = value

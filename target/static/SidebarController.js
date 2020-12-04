@@ -129,7 +129,7 @@ define(["require", "exports", "utils/Color"], function (require, exports, Color_
         },
         [StyleName.AlignItems]: {
             get: (widget) => {
-                return widget.element.style.alignItems || 'flex-start';
+                return widget.element.style.alignItems || 'stretch';
             },
             set: (widget, value) => {
                 widget.element.style.alignItems = value;

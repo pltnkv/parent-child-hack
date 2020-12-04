@@ -7,9 +7,6 @@ import createElement from 'utils/createElement'
 export default abstract class BaseWidget {
 	element: HTMLElement
 
-	private ghostElements: HTMLElement[] = []
-	private movingWidgets: MovingWidgets = []
-
 	constructor(private controller: CanvasController, element: HTMLElement, initData: IBaseWidgetData) {
 		this.element = element
 		if (initData.container) {
@@ -65,6 +62,7 @@ export default abstract class BaseWidget {
 			}
 		} else {
 			this.element.setAttribute('container', value)
+			this.element.innerText = ''
 			this.element.style.display = value
 		}
 	}
@@ -77,11 +75,49 @@ export default abstract class BaseWidget {
 		}
 	}
 
+	appendChild(widget: BaseWidget, index?: number) {
+		const refChild = index === undefined ? null : this.element.children[index]
+		this.element.insertBefore(widget.element, refChild)
+		widget.element.style.position = 'relative'
+	}
+
+	get childrenWidgets(): BaseWidget[] {
+		return Array.from(this.element.children)
+			.map(child => this.controller.getWidgetByElement(child)!)
+	}
+
+	get parentWidget(): BaseWidget | undefined {
+		if (this.isAttachedToCanvas) {
+			return undefined
+		} else {
+			return this.controller.getWidgetByElement(this.element.parentElement)
+		}
+	}
+
+	get isPositionControlledByParent():boolean {
+		return this.parentWidget?.containerType === 'flex'
+	}
+
 	destroy() {
 		this.element.remove()
 	}
 
+	////////////////////////////////////////////////////////////////
+	// Drag-and-drop
+	////////////////////////////////////////////////////////////////
+
+	private ghostElements: HTMLElement[] = []
+	private movingWidgets: MovingWidgets = []
+	private posThresholds: number[] = []
+	private targetIndex: number = 0
+	private originalChildren: Element[] = []
+	private direction: 'row' | 'column' | 'free' = 'free'
+
 	addGhosts(movingWidgets: MovingWidgets) {
+		this.direction = <any>this.element.style.flexDirection || 'row' //todo impl free
+		this.originalChildren = Array.from(this.element.children)
+		this.posThresholds = this.getPosThresholds(this.originalChildren)
+
 		this.movingWidgets = movingWidgets
 		this.ghostElements = movingWidgets.map(mw => {
 			return createElement({
@@ -99,55 +135,69 @@ export default abstract class BaseWidget {
 		this.highlighted = true
 	}
 
-	//movingWidgets have to be the same as in addGhosts() method
-	updateGhosts(mouseX: number, mouseY: number) {
+	private getPosThresholds(children: Element[]) {
+		return children.map(c => {
+			const rect = c.getBoundingClientRect()
+			if (this.direction === 'row') {
+				return rect.left + rect.width / 2
+			} else if (this.direction === 'column') {
+				return rect.top + rect.height / 2
+			} else {
+				throw new Error('getPosThresholds not work with "free" direction')
+			}
+		})
+	}
 
+	updateGhosts(mouseX: number, mouseY: number) {
+		this.targetIndex = this.findTargetIndex(this.direction === 'row' ? mouseX : mouseY)
+		this.ghostElements.forEach(ghost => {
+			this.element.insertBefore(ghost, this.originalChildren![this.targetIndex])
+		})
+	}
+
+	private findTargetIndex(pos: number): number {
+		for (let i = 0; i < this.posThresholds.length; i++) {
+			if (pos < this.posThresholds[i]) {
+				return i
+			}
+		}
+		return this.posThresholds.length
 	}
 
 	applyGhosts() {
+		this.removeGhostsElements()
 		this.movingWidgets.forEach((mw, index) => {
 			const ghost = this.ghostElements[index]
 			mw.w.element.style.top = ghost.style.top
 			mw.w.element.style.left = ghost.style.left
-			this.appendChild(mw.w)
+			this.appendChild(mw.w, this.targetIndex)
 		})
-		this.removeGhosts()
+		this.clearGhostsData()
 		this.controller.forceUpdateSelectionBorder()
 	}
 
 	removeGhosts() {
+		this.removeGhostsElements()
+		this.clearGhostsData()
+	}
+
+	private removeGhostsElements() {
 		this.ghostElements.forEach(ghost => {
 			ghost.remove()
 		})
+	}
+
+	private clearGhostsData() {
 		this.ghostElements = []
 		this.movingWidgets = []
 		this.highlighted = false
-	}
-
-	appendChild(widget: BaseWidget) {
-		//ghost instead of null
-		this.element.insertBefore(widget.element, null)
-		widget.element.style.position = 'static' //TODO or relative if not flex model
-	}
-
-	get childrenWidgets(): BaseWidget[] {
-		return Array.from(this.element.children)
-			.map(child => this.controller.getWidgetByElement(child)!)
-	}
-
-	get parentWidget(): BaseWidget | undefined {
-		if (this.isAttachedToCanvas) {
-			return undefined
-		} else {
-			return this.controller.getWidgetByElement(this.element.parentElement)
-		}
 	}
 
 	////////////////////////////////////////////////////////////////
 	// Geometry
 	////////////////////////////////////////////////////////////////
 
-	get x() {
+	get x(): number {
 		return parseInt(this.element.style.left)
 	}
 

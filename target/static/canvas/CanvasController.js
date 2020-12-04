@@ -1,7 +1,6 @@
 define(["require", "exports", "canvas/widgets/ShapeWidget", "canvas/ControlsLayer", "utils/createElement", "utils/getUnionBounds", "utils/getRootElements"], function (require, exports, ShapeWidget_1, ControlsLayer_1, createElement_1, getUnionBounds_1, getRootElements_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    let idCounter = 0;
     class CanvasController {
         constructor(canvasContainer, sidebarController) {
             this.canvasContainer = canvasContainer;
@@ -25,7 +24,6 @@ define(["require", "exports", "canvas/widgets/ShapeWidget", "canvas/ControlsLaye
         createWidgetFromElement(el) {
             const widget = new ShapeWidget_1.default(//todo not only ShapeWidget
             this, {
-                id: ++idCounter,
                 type: 'shape',
                 x: 0,
                 y: 0,
@@ -54,7 +52,6 @@ define(["require", "exports", "canvas/widgets/ShapeWidget", "canvas/ControlsLaye
         }
         createShapeWidget(data, parent) {
             const widget = new ShapeWidget_1.default(this, {
-                id: ++idCounter,
                 type: 'shape',
                 x: data.x || 0,
                 y: data.y || 0,
@@ -140,7 +137,7 @@ define(["require", "exports", "canvas/widgets/ShapeWidget", "canvas/ControlsLaye
             const targetWidgetElement = elements.find(elementUnderPoint => {
                 if (elementUnderPoint.getAttribute('data-id')) {
                     widgetElement = this.getWidgetByElement(elementUnderPoint);
-                    return widgetElement
+                    return !!widgetElement
                         && widgetElement.isContainer
                         && widgetElement.isDADEnabled
                         && !movingWidgets.some(mw => widgetElement === mw.w);

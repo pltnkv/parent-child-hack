@@ -4,8 +4,15 @@ define(["require", "exports", "utils/createElement"], function (require, exports
     class BaseWidget {
         constructor(controller, element, initData) {
             this.controller = controller;
+            ////////////////////////////////////////////////////////////////
+            // Drag-and-drop
+            ////////////////////////////////////////////////////////////////
             this.ghostElements = [];
             this.movingWidgets = [];
+            this.posThresholds = [];
+            this.targetIndex = 0;
+            this.originalChildren = [];
+            this.direction = 'free';
             this.element = element;
             if (initData.container) {
                 this.containerType = 'flex';
@@ -58,6 +65,7 @@ define(["require", "exports", "utils/createElement"], function (require, exports
             }
             else {
                 this.element.setAttribute('container', value);
+                this.element.innerText = '';
                 this.element.style.display = value;
             }
         }
@@ -69,10 +77,34 @@ define(["require", "exports", "utils/createElement"], function (require, exports
                 return this.element.contains(widget.element);
             }
         }
+        appendChild(widget, index) {
+            const refChild = index === undefined ? null : this.element.children[index];
+            this.element.insertBefore(widget.element, refChild);
+            widget.element.style.position = 'relative';
+        }
+        get childrenWidgets() {
+            return Array.from(this.element.children)
+                .map(child => this.controller.getWidgetByElement(child));
+        }
+        get parentWidget() {
+            if (this.isAttachedToCanvas) {
+                return undefined;
+            }
+            else {
+                return this.controller.getWidgetByElement(this.element.parentElement);
+            }
+        }
+        get isPositionControlledByParent() {
+            var _a;
+            return ((_a = this.parentWidget) === null || _a === void 0 ? void 0 : _a.containerType) === 'flex';
+        }
         destroy() {
             this.element.remove();
         }
         addGhosts(movingWidgets) {
+            this.direction = this.element.style.flexDirection || 'row'; //todo impl free
+            this.originalChildren = Array.from(this.element.children);
+            this.posThresholds = this.getPosThresholds(this.originalChildren);
             this.movingWidgets = movingWidgets;
             this.ghostElements = movingWidgets.map(mw => {
                 return createElement_1.default({
@@ -89,43 +121,58 @@ define(["require", "exports", "utils/createElement"], function (require, exports
             });
             this.highlighted = true;
         }
-        //movingWidgets have to be the same as in addGhosts() method
+        getPosThresholds(children) {
+            return children.map(c => {
+                const rect = c.getBoundingClientRect();
+                if (this.direction === 'row') {
+                    return rect.left + rect.width / 2;
+                }
+                else if (this.direction === 'column') {
+                    return rect.top + rect.height / 2;
+                }
+                else {
+                    throw new Error('getPosThresholds not work with "free" direction');
+                }
+            });
+        }
         updateGhosts(mouseX, mouseY) {
+            this.targetIndex = this.findTargetIndex(this.direction === 'row' ? mouseX : mouseY);
+            this.ghostElements.forEach(ghost => {
+                this.element.insertBefore(ghost, this.originalChildren[this.targetIndex]);
+            });
+        }
+        findTargetIndex(pos) {
+            for (let i = 0; i < this.posThresholds.length; i++) {
+                if (pos < this.posThresholds[i]) {
+                    return i;
+                }
+            }
+            return this.posThresholds.length;
         }
         applyGhosts() {
+            this.removeGhostsElements();
             this.movingWidgets.forEach((mw, index) => {
                 const ghost = this.ghostElements[index];
                 mw.w.element.style.top = ghost.style.top;
                 mw.w.element.style.left = ghost.style.left;
-                this.appendChild(mw.w);
+                this.appendChild(mw.w, this.targetIndex);
             });
-            this.removeGhosts();
+            this.clearGhostsData();
             this.controller.forceUpdateSelectionBorder();
         }
         removeGhosts() {
+            this.removeGhostsElements();
+            this.clearGhostsData();
+        }
+        removeGhostsElements() {
             this.ghostElements.forEach(ghost => {
                 ghost.remove();
             });
+        }
+        clearGhostsData() {
             this.ghostElements = [];
             this.movingWidgets = [];
             this.highlighted = false;
-        }
-        appendChild(widget) {
-            //ghost instead of null
-            this.element.insertBefore(widget.element, null);
-            widget.element.style.position = 'static'; //TODO or relative if not flex model
-        }
-        get childrenWidgets() {
-            return Array.from(this.element.children)
-                .map(child => this.controller.getWidgetByElement(child));
-        }
-        get parentWidget() {
-            if (this.isAttachedToCanvas) {
-                return undefined;
-            }
-            else {
-                return this.controller.getWidgetByElement(this.element.parentElement);
-            }
         }
         ////////////////////////////////////////////////////////////////
         // Geometry

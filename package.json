@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "tsc --project src/tsconfig.json",
-    "watch": "tsc --project src/tsconfig.json -w"
+    "build": "./node_modules/typescript/bin/tsc --project src/tsconfig.json",
+    "watch": "./node_modules/typescript/bin/tsc --project src/tsconfig.json -w"
   },
   "keywords": [],
   "author": "",
